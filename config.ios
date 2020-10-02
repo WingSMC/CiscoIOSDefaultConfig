@@ -1,0 +1,145 @@
+ena
+conf t
+host R6
+no ip domain-lookup
+enable password cisco
+enable secret class
+
+line con 0
+logging synchronous
+password cisco
+no login local
+login
+exec-timeout 0 45
+exit
+
+ip domain-name test6.hu
+
+username admin privilege 15 secret admin
+
+crypto key gen rsa
+yes
+2048
+
+line vty 0 4
+exec-timeout 0 45
+login local
+transport input ssh
+exit
+
+service password-encryption
+
+int fa0/0
+ip add 100.0.0.6 255.255.255.0
+no shut
+exit
+
+int fa0/1
+no shut
+int fa0/1.50
+encap dot1Q 50
+ip add 192.168.6.1 255.255.255.192
+no shut
+exit
+
+ip dhcp pool LAN30
+network 192.168.6.64 255.255.255.224
+default 192.168.6.65
+dns 8.8.8.8
+exit
+ip dhcp excl 192.168.6.1
+router ospf 1 
+network 100.0.0.6 0.0.0.255 area 0
+
+
+
+------------------------------------------------------------------------------------
+router rip
+version 2
+no auto-summary
+network 10.4.0.0
+exit
+
+access-list 1 permit 192.168.0.0 0.0.0.255
+
+ip nat inside source list 1 interface s0/0/0 overload
+
+ip nat outside
+ip nat inside
+------------------------------------------------------------------------------------
+ena
+conf t
+host SW6
+no ip domain-lookup
+enable password cisco
+enable secret class
+
+line con 0
+logging synchronous
+password cisco
+no login local
+login
+exec-timeout 0 45
+exit
+
+ip domain-name test6.hu
+
+username admin privilege 15 secret admin
+
+line vty 0 15
+exec-timeout 0 45
+login local
+transport input telnet
+exit
+
+service password-encryption
+
+int vlan 50
+ip add 192.168.6.2 255.255.255.192
+no shut
+exit
+
+int fa0/24
+switchport mode trunk
+exit
+
+
+
+int f0/1
+switchport mode access
+switchport access vlan 50
+exit
+
+ip default-gateway 192.168.6.254
+
+----------------------------------------------------------
+
+
+
+int f0/1
+switchport mode access
+switchport access vlan 10
+switchport port-security
+switchport port-security maximum 1
+switchport port-security mac-address sticky
+
+protect / restrict
+
+
+int g0/1
+switchport mode trunk
+exit
+
+vtp domain teszt.hu
+vtp password cisco
+vtp ver 2
+vtp mode client
+
+int g0/0
+no shut
+int g0/0.10
+encap dot1Q 10
+ip add 192.168.0.129 255.255.255.192
+
+
+
